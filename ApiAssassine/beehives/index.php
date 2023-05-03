@@ -15,8 +15,8 @@ if ($method === 'GET') {
 					"lon"=>$row["lon"]
 				),
 				"esp_type"=>array(
-					"name_esp"=>$row["fk_esp_type"],
-					"href"=>"../esp/".$row["fk_esp_type"]
+					"name_esp"=>$row["esp_type"],
+					"href"=>"../esp/".$row["esp_type"]
 				)
 			);
 		}
