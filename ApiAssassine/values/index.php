@@ -3,29 +3,35 @@ $method = $_SERVER['REQUEST_METHOD'];
 include 'conn.php';
 
 if ($method === 'GET') {
-	$sql = "SELECT * FROM (value JOIN beehives ON fk_id_bhv=id_bhv)JOIN esp ON fk_id_esp=id_esp";
-	$result = $conn->query($sql);
-	if ($result->num_rows > 0) {
-		$dato = array();
-	  	while($row = $result->fetch_assoc()) {
-			$dato[] = array(
-				"id"=>$row["id_val"],
-				"weight" => $row["weight"],
-				"temperature"=>$row["temperature"],
-				"humidity"=>$row["humidity"],
-				"noise_level"=>$row["noise_level"],
-				"beehive"=>$array(
-					"name_beehive"=>$row["nome_bhv"],
-					"esp_code" => array(
-						"esp_name"=>$row["id_esp"],
-						"href"=>"../esp/".$row["id_esp"]
-					)
-				),
-				"timestamp"=>$row["timestamp"]
-			);
+	try{
+		$sql = "SELECT * FROM (value JOIN beehives ON fk_id_bhv=id_bhv)JOIN esp ON esp_type=id_esp";
+		$result = $conn->query($sql);
+		if ($result->num_rows > 0) {
+			$dato = array();
+			while($row = $result->fetch_assoc()) {
+				$dato[] = array(
+					"id"=>$row["id_val"],
+					"weight" => $row["weight"],
+					"temperature"=>$row["temperature"],
+					"humidity"=>$row["humidity"],
+					"noise_level"=>$row["noise_level"],
+					"beehive"=>array(
+						"name_beehive"=>$row["name"],
+						"esp_code" => array(
+							"esp_name"=>$row["id_esp"],
+							"href"=>"../esp/".$row["id_esp"]
+						)
+					),
+					"timestamp"=>$row["timestamp_val"]
+				);
+			}
+			header('Content-Type: application/json');
+			echo json_encode(array("dato" => $dato));
 		}
-		header('Content-Type: application/json');
-		echo json_encode(array("dato" => $dato));
+	}catch(Exception $e){
+		ini_set('display_errors', 1);
+		ini_set('display_startup_errors', 1);
+		error_reporting(E_ALL);
 	}	
 } elseif ($method === 'POST') {
 	// Leggi il payload JSON inviato nella richiesta
@@ -39,7 +45,7 @@ if ($method === 'GET') {
 	$timestamp = $data->timestamp;
 	
 
-	$sql = "INSERT INTO value (weight, temperature,humidity,noise_level,fk_id_bhv,timestamp) VALUES ($weight, $temperature,$humidity,$noise_level,$fk_id_bhv,'$timestamp')";
+	$sql = "INSERT INTO value (weight, temperature,humidity,noise_level,fk_id_bhv,timestamp_val) VALUES ($weight, $temperature,$humidity,$noise_level,$fk_id_bhv,'$timestamp')";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
@@ -60,7 +66,7 @@ if ($method === 'GET') {
 	$fk_id_bhv = $data->fk_id_bhv;
 	$timestamp = $data->timestamp;
 
-	$sql = "UPDATE value SET weight=$weight, temperature=$temperature,humidity=$humidity,noise_level=$noise_level,fk_id_bhv=$fk_id_bhv ,timestamp='$timestamp' WHERE id=$id";
+	$sql = "UPDATE value SET weight=$weight, temperature=$temperature,humidity=$humidity,noise_level=$noise_level,fk_id_bhv=$fk_id_bhv ,timestamp_val='$timestamp' WHERE id_val=$id";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
