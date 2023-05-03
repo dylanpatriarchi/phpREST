@@ -3,15 +3,21 @@ $method = $_SERVER['REQUEST_METHOD'];
 include 'conn.php';
 
 if ($method === 'GET') {
-	$sql = "SELECT * FROM esp";
+	$sql = "SELECT * FROM beehives";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
 		$dato = array();
 	  	while($row = $result->fetch_assoc()) {
 			$dato[] = array(
-				"id_esp"=>$row["id_esp"],
-				"devKit" => $row["devKit"],
-				"number-pin"=>$row["number_pin"]
+				"name"=>$row["name"],
+				"location" =>array(
+					"lat"=>$row["lat"],
+					"lon"=>$row["lon"]
+				),
+				"esp_type"=>array(
+					"name_esp"=>$row["fk_esp_type"],
+					"href"=>"../esp/".$row["fk_esp_type"]
+				)
 			);
 		}
 		header('Content-Type: application/json');
@@ -21,11 +27,12 @@ if ($method === 'GET') {
 	// Leggi il payload JSON inviato nella richiesta
 	$request_body = file_get_contents('php://input');
 	$data = json_decode($request_body);
-	$id_esp = $data->id_esp;
-	$devKit = $data->devKit;
-	$number_pin = $data->number_pin;
+	$name = $data->name;
+	$lat = $data->lat;
+	$lon = $data->lon;
+	$esp_type = $data->esp_type;
 
-	$sql = "INSERT INTO esp (id_esp, devKit,number_pin) VALUES ('$id_esp', '$devKit',$number_pin)";
+	$sql = "INSERT INTO beehives (name, lat,lon,esp_type) VALUES ('$name', '$lat','$lon','$esp_type')";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
@@ -40,11 +47,13 @@ if ($method === 'GET') {
 	$data = json_decode($request_body);
 
 	// Esegui l'aggiornamento dei dati nel database
-	$id_esp = $data->id_esp;
-	$devKit = $data->devKit;
-	$number_pin = $data->number_pin;
+	$id_bhv = $data->id_bhv;
+	$name = $data->name;
+	$lat = $data->lat;
+	$lon = $data->lon;
+	$esp_type = $data->esp_type;
 
-	$sql = "UPDATE esp SET devKit=$devKit, number_pin='$number_pin' WHERE id_esp=$id_esp";
+	$sql = "UPDATE beehives SET name=$devKit, lat='$lat', lon=$lon,esp_type=$esp_type WHERE id_bhv=$id_bhv";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
@@ -54,9 +63,9 @@ if ($method === 'GET') {
 		var_dump(http_response_code(500));
 	}
 } elseif ($method === 'DELETE') {
-	$id_esp = $_REQUEST["id"];
+	$id_bhv = $_REQUEST["id"];
 
-	$sql = "DELETE FROM esp WHERE id_esp=$id_esp";
+	$sql = "DELETE FROM beehives WHERE id_bhv=$id_bhv";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');

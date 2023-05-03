@@ -3,17 +3,25 @@ $method = $_SERVER['REQUEST_METHOD'];
 include 'conn.php';
 
 if ($method === 'GET') {
-	$sql = "SELECT * FROM pesoarnia";
+	$sql = "SELECT * FROM (value JOIN beehives ON fk_id_bhv=id_bhv)JOIN esp ON fk_id_esp=id_esp";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
 		$dato = array();
 	  	while($row = $result->fetch_assoc()) {
 			$dato[] = array(
-				"esp_code" => array(
-					"nome"=>$row["esp_type"],
-					"href"=>"../esp/".$row["esp_type"]
+				"id"=>$row["id_val"],
+				"weight" => $row["weight"],
+				"temperature"=>$row["temperature"],
+				"humidity"=>$row["humidity"],
+				"noise_level"=>$row["noise_level"],
+				"beehive"=>$array(
+					"name_beehive"=>$row["nome_bhv"],
+					"esp_code" => array(
+						"esp_name"=>$row["id_esp"],
+						"href"=>"../esp/".$row["id_esp"]
+					)
 				),
-				"peso" => $row["peso"],
+				"timestamp"=>$row["timestamp"]
 			);
 		}
 		header('Content-Type: application/json');
@@ -23,10 +31,15 @@ if ($method === 'GET') {
 	// Leggi il payload JSON inviato nella richiesta
 	$request_body = file_get_contents('php://input');
 	$data = json_decode($request_body);
-	$esp_code = $data->esp_code;
-	$peso = $data->peso;
+	$weight = $data->weight;
+	$temperature = $data->temperature;
+	$humidity = $data->humidity;
+	$noise_level = $data->noise_level;
+	$fk_id_bhv = $data->fk_id_bhv;
+	$timestamp = $data->timestamp;
+	
 
-	$sql = "INSERT INTO pesoarnia (esp_type, peso) VALUES ('$esp_code', $peso)";
+	$sql = "INSERT INTO value (weight, temperature,humidity,noise_level,fk_id_bhv,timestamp) VALUES ($weight, $temperature,$humidity,$noise_level,$fk_id_bhv,'$timestamp')";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
@@ -34,19 +47,20 @@ if ($method === 'GET') {
 	} else {
 		// Restituisci una risposta di errore
 		var_dump(http_response_code(500));
-		echo "Errore: " . $sql . "<br>" . $conn->error;
 	}
 } elseif ($method === 'PUT') {
 	// Leggi il payload JSON inviato nella richiesta
 	$request_body = file_get_contents('php://input');
 	$data = json_decode($request_body);
 
-	// Esegui l'aggiornamento dei dati nel database
-	$id = $data->id;
-	$esp_code = $data->esp_code;
-	$peso = $data->peso;
+	$weight = $data->weight;
+	$temperature = $data->temperature;
+	$humidity = $data->humidity;
+	$noise_level = $data->noise_level;
+	$fk_id_bhv = $data->fk_id_bhv;
+	$timestamp = $data->timestamp;
 
-	$sql = "UPDATE pesoarnia SET peso=$peso, esp_type='$esp_code', WHERE id=$id";
+	$sql = "UPDATE value SET weight=$weight, temperature=$temperature,humidity=$humidity,noise_level=$noise_level,fk_id_bhv=$fk_id_bhv ,timestamp='$timestamp' WHERE id=$id";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
@@ -54,17 +68,11 @@ if ($method === 'GET') {
 	} else {
 		// Restituisci una risposta di errore
 		var_dump(http_response_code(500));
-		echo "Errore: " . $sql . "<br>" . $conn->error;
 	}
 } elseif ($method === 'DELETE') {
-	// Leggi il payload JSON inviato nella richiesta
-	$request_body = file_get_contents('php://input');
-	$data = json_decode($request_body);
+	$id = $_REQUEST["id"];
 
-	// Esegui la cancellazione dei dati dal database
-	$id = $data->id;
-
-	$sql = "DELETE FROM pesoarnia WHERE id=$id";
+	$sql = "DELETE FROM value WHERE id_val=$id";
 	if ($conn->query($sql) === TRUE) {
 		// Restituisci una risposta di successo
 		header('Content-Type: application/json');
@@ -72,7 +80,6 @@ if ($method === 'GET') {
 	} else {
 		// Restituisci una risposta di errore
 		var_dump(http_response_code(500));
-		echo "Errore: " . $sql . "<br>". $conn->error;
 	}
 } else {
 // Metodo HTTP non riconosciuto
